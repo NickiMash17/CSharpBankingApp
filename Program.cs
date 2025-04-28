@@ -61,11 +61,24 @@ namespace CSharpBankingApp
             Console.Write("Enter your name: ");
             var name = Console.ReadLine();
             
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Name cannot be empty.");
+                return;
+            }
+            
             Console.Write("Enter initial deposit amount: ");
             if (decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
-                var account = bank.CreateAccount(name, amount);
-                Console.WriteLine($"Account created successfully! Account Number: {account.Number}");
+                try
+                {
+                    var account = bank.CreateAccount(name, amount);
+                    Console.WriteLine($"Account created successfully! Account Number: {account.Number}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
             }
             else
             {
@@ -78,8 +91,14 @@ namespace CSharpBankingApp
             Console.Write("Enter account number: ");
             var accountNumber = Console.ReadLine();
             
+            if (string.IsNullOrWhiteSpace(accountNumber))
+            {
+                Console.WriteLine("Account number cannot be empty.");
+                return;
+            }
+            
             var account = bank.GetAccount(accountNumber);
-            if (account == null)
+            if (account is null)
             {
                 Console.WriteLine("Account not found.");
                 return;
@@ -109,8 +128,14 @@ namespace CSharpBankingApp
             Console.Write("Enter account number: ");
             var accountNumber = Console.ReadLine();
             
+            if (string.IsNullOrWhiteSpace(accountNumber))
+            {
+                Console.WriteLine("Account number cannot be empty.");
+                return;
+            }
+            
             var account = bank.GetAccount(accountNumber);
-            if (account == null)
+            if (account is null)
             {
                 Console.WriteLine("Account not found.");
                 return;
@@ -140,8 +165,14 @@ namespace CSharpBankingApp
             Console.Write("Enter account number: ");
             var accountNumber = Console.ReadLine();
             
+            if (string.IsNullOrWhiteSpace(accountNumber))
+            {
+                Console.WriteLine("Account number cannot be empty.");
+                return;
+            }
+            
             var account = bank.GetAccount(accountNumber);
-            if (account == null)
+            if (account is null)
             {
                 Console.WriteLine("Account not found.");
                 return;
@@ -155,8 +186,14 @@ namespace CSharpBankingApp
             Console.Write("Enter account number: ");
             var accountNumber = Console.ReadLine();
             
+            if (string.IsNullOrWhiteSpace(accountNumber))
+            {
+                Console.WriteLine("Account number cannot be empty.");
+                return;
+            }
+            
             var account = bank.GetAccount(accountNumber);
-            if (account == null)
+            if (account is null)
             {
                 Console.WriteLine("Account not found.");
                 return;
@@ -168,8 +205,15 @@ namespace CSharpBankingApp
 
         static void ViewAllAccounts(Bank bank)
         {
+            var accounts = bank.GetAllAccounts();
+            if (accounts.Count == 0)
+            {
+                Console.WriteLine("No accounts found.");
+                return;
+            }
+            
             Console.WriteLine("\nAll Accounts:");
-            foreach (var account in bank.GetAllAccounts())
+            foreach (var account in accounts)
             {
                 Console.WriteLine($"Account#: {account.Number}, Owner: {account.Owner}, Balance: {account.Balance:C}");
             }
