@@ -6,30 +6,33 @@ namespace CSharpBankingApp
 {
     public class Bank
     {
-        private List<Account> _accounts = new List<Account>();
+        private readonly List<Account> _accounts = new List<Account>();
         
         public string Name { get; }
 
         public Bank(string name)
         {
-            this.Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public Account CreateAccount(string ownerName, decimal initialDeposit)
         {
+            if (string.IsNullOrWhiteSpace(ownerName))
+                throw new ArgumentException("Owner name cannot be empty", nameof(ownerName));
+
             var account = new Account(ownerName, initialDeposit);
             _accounts.Add(account);
             return account;
         }
 
-        public Account GetAccount(string accountNumber)
+        public Account? GetAccount(string accountNumber)
         {
+            if (string.IsNullOrWhiteSpace(accountNumber))
+                return null;
+
             return _accounts.FirstOrDefault(a => a.Number == accountNumber);
         }
 
-        public IEnumerable<Account> GetAllAccounts()
-        {
-            return _accounts.AsReadOnly();
-        }
+        public IReadOnlyList<Account> GetAllAccounts() => _accounts.AsReadOnly();
     }
 }
