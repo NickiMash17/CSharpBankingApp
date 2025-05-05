@@ -27,7 +27,7 @@ Welcome to your very own digital banking empire! This console-based banking appl
 
 1. **Clone the treasury**
    ```
-   git clone https://github.com/yourusername/CSharpBankingApp.git
+   git clone https://github.com/NickiMash17/CSharpBankingApp.git
    ```
 
 2. **Enter the vault**
