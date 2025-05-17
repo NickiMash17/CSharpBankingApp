@@ -69,7 +69,7 @@ ZABank is a robust, feature-rich banking application built with C# that simulate
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ZABank.git
+git clone https://github.com/NickiMash17/ZABank.git
 
 # Navigate to the project directory
 cd ZABank
