@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 
@@ -14,14 +15,31 @@ namespace CSharpBankingApp
 
     public class Account
     {
+        [JsonPropertyName("id")]
         public string Id { get; private set; }
+        
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+        
+        [JsonPropertyName("balance")]
         public decimal Balance { get; private set; }
+        
+        [JsonPropertyName("transactions")]
         public List<Transaction> Transactions { get; private set; }
+        
+        [JsonPropertyName("pin")]
         private string Pin { get; set; }
+        
+        [JsonPropertyName("type")]
         public AccountType Type { get; private set; }
+        
+        [JsonPropertyName("interestRate")]
         public decimal InterestRate { get; private set; }
+        
+        [JsonPropertyName("overdraftLimit")]
         public decimal OverdraftLimit { get; private set; }
+        
+        [JsonPropertyName("minimumBalance")]
         public decimal MinimumBalance { get; private set; }
 
         [JsonConstructor]
@@ -68,7 +86,7 @@ namespace CSharpBankingApp
             return true;
         }
         
-        private bool ValidatePinFormat(string pin) => 
+        private static bool ValidatePinFormat(string pin) => 
             !string.IsNullOrEmpty(pin) && pin.Length == 4 && pin.All(char.IsDigit);
 
         public bool ConvertAccountType(AccountType newType, string pin)
@@ -98,11 +116,13 @@ namespace CSharpBankingApp
                     OverdraftLimit = 0;
                     MinimumBalance = 0;
                     break;
+                
                 case AccountType.Cheque:
                     InterestRate = 0.005m;
                     OverdraftLimit = 200;
                     MinimumBalance = 100;
                     break;
+                
                 case AccountType.Business:
                     InterestRate = 0.01m;
                     OverdraftLimit = 500;
@@ -113,35 +133,55 @@ namespace CSharpBankingApp
 
         public bool Deposit(decimal amount, string pin)
         {
-            if (!ValidatePin(pin) || amount <= 0) return false;
+            if (!ValidatePin(pin) || amount <= 0)
+                return false;
 
             Balance += amount;
-            Transactions.Add(new Transaction(TransactionType.Deposit, amount, DateTime.Now));
+            Transactions.Add(new Transaction(
+                TransactionType.Deposit, 
+                amount, 
+                DateTime.Now, 
+                $"Deposit of {FormatZAR(amount)}"));
             return true;
         }
 
         public bool Withdraw(decimal amount, string pin)
         {
-            if (!ValidatePin(pin) || amount <= 0) return false;
-            if (Balance - amount < -OverdraftLimit) return false;
-            if (Balance - amount < MinimumBalance && Balance - amount >= 0) return false;
+            if (!ValidatePin(pin) || amount <= 0)
+                return false;
+
+            if (Balance - amount < -OverdraftLimit)
+                return false;
+
+            if (Balance - amount < MinimumBalance && Balance - amount >= 0)
+                return false;
 
             Balance -= amount;
-            Transactions.Add(new Transaction(TransactionType.Withdrawal, amount, DateTime.Now));
+            Transactions.Add(new Transaction(
+                TransactionType.Withdrawal, 
+                amount, 
+                DateTime.Now, 
+                $"Withdrawal of {FormatZAR(amount)}"));
             return true;
         }
 
-        public decimal CalculateInterest() => Balance <= 0 ? 0 : Balance * (InterestRate / 12);
+        public decimal CalculateInterest() => 
+            Balance <= 0 ? 0 : Balance * (InterestRate / 12);
         
         public bool ApplyMonthlyInterest(string pin)
         {
-            if (!ValidatePin(pin)) return false;
+            if (!ValidatePin(pin))
+                return false;
                 
             decimal interestAmount = CalculateInterest();
             if (interestAmount > 0)
             {
                 Balance += interestAmount;
-                Transactions.Add(new Transaction(TransactionType.Interest, interestAmount, DateTime.Now));
+                Transactions.Add(new Transaction(
+                    TransactionType.Interest, 
+                    interestAmount, 
+                    DateTime.Now, 
+                    $"Interest payment of {FormatZAR(interestAmount)}"));
                 return true;
             }
             return false;
@@ -160,13 +200,21 @@ namespace CSharpBankingApp
             return query.OrderByDescending(t => t.Timestamp).ToList();
         }
         
-        public string GetAccountSummary() =>
-            $"Account ID: {Id}\n" +
-            $"Name: {Name}\n" +
-            $"Type: {Type}\n" +
-            $"Balance: {Balance:C}\n" +
-            $"Interest Rate: {InterestRate:P}\n" +
-            $"Overdraft Limit: {OverdraftLimit:C}\n" +
-            $"Minimum Balance: {MinimumBalance:C}";
+        public string GetAccountSummary()
+        {
+            return $"Account ID: {Id}\n" +
+                   $"Name: {Name}\n" +
+                   $"Type: {Type}\n" +
+                   $"Balance: {FormatZAR(Balance)}\n" +
+                   $"Interest Rate: {InterestRate:P}\n" +
+                   $"Overdraft Limit: {FormatZAR(OverdraftLimit)}\n" +
+                   $"Minimum Balance: {FormatZAR(MinimumBalance)}";
+        }
+
+        private static string FormatZAR(decimal amount)
+        {
+            var zarCulture = System.Globalization.CultureInfo.CreateSpecificCulture("en-ZA");
+            return amount.ToString("C2", zarCulture);
+        }
     }
 }

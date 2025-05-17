@@ -19,9 +19,8 @@ namespace CSharpBankingApp
         public TransactionType Type { get; private set; }
         public decimal Amount { get; private set; }
         public DateTime Timestamp { get; private set; }
-        public string Description { get; private set; }
+        public string Description { get; private set; } // Non-nullable
 
-        // For JSON serialization
         [JsonConstructor]
         public Transaction(Guid id, TransactionType type, decimal amount, DateTime timestamp, string description)
         {
@@ -29,36 +28,29 @@ namespace CSharpBankingApp
             Type = type;
             Amount = amount;
             Timestamp = timestamp;
-            Description = description;
+            Description = description ?? GetDefaultDescription(type); // Ensure never null
         }
 
-        // Constructor for new transactions
-        public Transaction(TransactionType type, decimal amount, DateTime timestamp, string description = null)
+        public Transaction(TransactionType type, decimal amount, DateTime timestamp, string? description = null)
+            : this(Guid.NewGuid(), type, amount, timestamp, description ?? GetDefaultDescription(type))
         {
-            Id = Guid.NewGuid();
-            Type = type;
-            Amount = amount;
-            Timestamp = timestamp;
-            Description = description ?? GetDefaultDescription(type);
         }
 
-        private string GetDefaultDescription(TransactionType type)
+        private static string GetDefaultDescription(TransactionType type) => type switch
         {
-            return type switch
-            {
-                TransactionType.Deposit => "Deposit",
-                TransactionType.Withdrawal => "Withdrawal",
-                TransactionType.Transfer => "Transfer",
-                TransactionType.Interest => "Interest payment",
-                TransactionType.Fee => "Service fee",
-                TransactionType.AccountTypeChange => "Account type conversion",
-                _ => "Transaction"
-            };
-        }
+            TransactionType.Deposit => "Deposit",
+            TransactionType.Withdrawal => "Withdrawal",
+            TransactionType.Transfer => "Transfer",
+            TransactionType.Interest => "Interest payment",
+            TransactionType.Fee => "Service fee",
+            TransactionType.AccountTypeChange => "Account type conversion",
+            _ => "Transaction"
+        };
 
         public override string ToString()
         {
-            return $"{Timestamp:yyyy-MM-dd HH:mm:ss} | {Type} | {Amount:C} | {Description}";
+            var zarCulture = System.Globalization.CultureInfo.CreateSpecificCulture("en-ZA");
+            return $"{Timestamp:yyyy-MM-dd HH:mm:ss} | {Type} | {Amount.ToString("C2", zarCulture)} | {Description}";
         }
     }
 }

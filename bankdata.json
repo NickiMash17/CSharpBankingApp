@@ -1,0 +1,12 @@
+[
+  {
+    "id": "acf3caf8-4872-4d40-a1bf-c2935cf219ae",
+    "name": "Savings",
+    "balance": 0,
+    "transactions": [],
+    "type": 1,
+    "interestRate": 0.005,
+    "overdraftLimit": 200,
+    "minimumBalance": 100
+  }
+]
