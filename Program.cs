@@ -7,8 +7,8 @@ namespace CSharpBankingApp
 {
     class Program
     {
-        private static Bank _bank;
-        private static Account _currentAccount;
+        private static Bank _bank = null!;
+        private static Account? _currentAccount = null;
         private static bool _running = true;
 
         static void Main(string[] args)
@@ -17,8 +17,7 @@ namespace CSharpBankingApp
             Console.WriteLine("Welcome to SA Banking App v2.0");
             Console.WriteLine("========================================");
             
-            // Initialize the bank with custom paths
-            _bank = new Bank("bankdata.json", "backups");
+            _bank = new Bank();
             
             while (_running)
             {
@@ -48,28 +47,14 @@ namespace CSharpBankingApp
             Console.WriteLine("5. Exit");
             Console.Write("\nEnter your choice: ");
             
-            string choice = Console.ReadLine();
-            
-            switch (choice)
+            switch (Console.ReadLine())
             {
-                case "1":
-                    CreateAccount();
-                    break;
-                case "2":
-                    LoginToAccount();
-                    break;
-                case "3":
-                    ViewAllAccounts();
-                    break;
-                case "4":
-                    ManageBackups();
-                    break;
-                case "5":
-                    _running = false;
-                    break;
-                default:
-                    Console.WriteLine("Invalid choice. Please try again.");
-                    break;
+                case "1": CreateAccount(); break;
+                case "2": LoginToAccount(); break;
+                case "3": ViewAllAccounts(); break;
+                case "4": ManageBackups(); break;
+                case "5": _running = false; break;
+                default: Console.WriteLine("Invalid choice."); break;
             }
         }
         
@@ -78,94 +63,73 @@ namespace CSharpBankingApp
             Console.WriteLine("\n=== Create New Account ===");
             
             Console.Write("Enter account name: ");
-            string name = Console.ReadLine();
-            
+            string? name = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(name))
             {
                 Console.WriteLine("Account name cannot be empty.");
                 return;
             }
             
-            // Check if account with this name already exists
             if (_bank.FindAccountByName(name) != null)
             {
-                Console.WriteLine("An account with this name already exists.");
+                Console.WriteLine("Account with this name already exists.");
                 return;
             }
             
             Console.Write("Enter 4-digit PIN: ");
-            string pin = Console.ReadLine();
-            
-            // Show account type selection
+            string? pin = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(pin) || pin.Length != 4 || !pin.All(char.IsDigit))
+            {
+                Console.WriteLine("Invalid PIN format.");
+                return;
+            }
+
             Console.WriteLine("\nSelect Account Type:");
             Console.WriteLine("1. Savings Account (2.5% interest, no overdraft)");
-            Console.WriteLine("2. Cheque Account (0.5% interest, R2000 overdraft)");
-            Console.WriteLine("3. Business Account (1% interest, R5000 overdraft)");
-            Console.Write("Enter your choice (1-3): ");
+            Console.WriteLine("2. Cheque Account (0.5% interest, R200 overdraft)");
+            Console.WriteLine("3. Business Account (1% interest, R500 overdraft)");
+            Console.Write("Enter choice (1-3): ");
             
-            string typeChoice = Console.ReadLine();
-            AccountType type = AccountType.Savings; // Default
-            
-            switch (typeChoice)
+            AccountType type = Console.ReadLine() switch
             {
-                case "2":
-                    type = AccountType.Cheque;
-                    break;
-                case "3":
-                    type = AccountType.Business;
-                    break;
+                "2" => AccountType.Cheque,
+                "3" => AccountType.Business,
+                _ => AccountType.Savings
+            };
+
+            var account = _bank.CreateAccount(name, pin, type);
+            if (account == null)
+            {
+                Console.WriteLine("Failed to create account.");
+                return;
             }
+
+            Console.WriteLine($"Account created! ID: {account.Id}");
+            Console.WriteLine(account.GetAccountSummary());
             
-            Account newAccount = _bank.CreateAccount(name, pin, type);
-            
-            if (newAccount != null)
+            Console.Write("\nMake initial deposit? (y/n): ");
+            if (Console.ReadLine()?.ToLower() == "y")
             {
-                Console.WriteLine($"Account created successfully!");
-                Console.WriteLine($"Your account ID is: {newAccount.Id}");
-                Console.WriteLine("\nAccount details:");
-                Console.WriteLine(newAccount.GetAccountSummary());
-                
-                // Ask if they want to make an initial deposit
-                Console.Write("\nWould you like to make an initial deposit? (y/n): ");
-                if (Console.ReadLine().ToLower() == "y")
+                Console.Write("Enter amount: ");
+                if (decimal.TryParse(Console.ReadLine(), out decimal amount))
                 {
-                    Console.Write("Enter deposit amount: ");
-                    if (decimal.TryParse(Console.ReadLine(), out decimal amount))
+                    if (_bank.Deposit(account.Id, amount, pin))
                     {
-                        if (_bank.Deposit(newAccount.Id, amount, pin))
-                        {
-                            Console.WriteLine($"Successfully deposited {amount:C}");
-                            Console.WriteLine($"New balance: {newAccount.Balance:C}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Deposit failed. Please try again later.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid amount format.");
+                        Console.WriteLine($"Deposited {amount:C}. New balance: {account.Balance:C}");
                     }
                 }
-                
-                // Automatically login to new account
-                _currentAccount = newAccount;
             }
-            else
-            {
-                Console.WriteLine("Failed to create account. Please check your inputs and try again.");
-            }
+            
+            _currentAccount = account;
         }
         
         static void LoginToAccount()
         {
-            Console.WriteLine("\n=== Login to Account ===");
-            
+            Console.WriteLine("\n=== Login ===");
             Console.Write("Enter account name: ");
-            string name = Console.ReadLine();
+            string? name = Console.ReadLine();
             
-            var account = _bank.FindAccountByName(name);
-            
+            var account = _bank.FindAccountByName(name ?? "");
             if (account == null)
             {
                 Console.WriteLine("Account not found.");
@@ -173,137 +137,95 @@ namespace CSharpBankingApp
             }
             
             Console.Write("Enter PIN: ");
-            string pin = Console.ReadLine();
+            string? pin = Console.ReadLine();
             
-            if (_bank.VerifyPin(account.Id, pin))
+            if (_bank.VerifyPin(account.Id, pin ?? ""))
             {
-                Console.WriteLine($"Welcome back, {account.Name}!");
+                Console.WriteLine($"Welcome, {account.Name}!");
                 _currentAccount = account;
             }
             else
             {
-                Console.WriteLine("Incorrect PIN. Access denied.");
+                Console.WriteLine("Incorrect PIN.");
             }
         }
         
         static void ViewAllAccounts()
         {
-            Console.WriteLine("\n=== All Accounts (Admin Mode) ===");
+            Console.WriteLine("\n=== All Accounts ===");
             Console.Write("Enter admin password: ");
-            
-            // Simple admin password for demo purposes
-            // In a real app, you'd use proper admin authentication
             if (Console.ReadLine() != "admin123")
             {
-                Console.WriteLine("Incorrect admin password.");
+                Console.WriteLine("Access denied.");
                 return;
             }
             
             var accounts = _bank.GetAllAccounts();
-            
-            if (accounts.Count == 0)
-            {
-                Console.WriteLine("No accounts found.");
-                return;
-            }
-            
             Console.WriteLine($"\nTotal accounts: {accounts.Count}");
-            Console.WriteLine("ID | Name | Type | Balance");
-            Console.WriteLine("----------------------------");
-            
-            foreach (var account in accounts)
+            foreach (var acc in accounts)
             {
-                Console.WriteLine($"{account.Id} | {account.Name} | {account.Type} | {account.Balance:C}");
+                Console.WriteLine($"{acc.Id} | {acc.Name} | {acc.Type} | {acc.Balance:C}");
             }
         }
         
         static void ManageBackups()
         {
-            Console.WriteLine("\n=== Backup Management (Admin) ===");
+            Console.WriteLine("\n=== Backup Management ===");
             Console.Write("Enter admin password: ");
-            
-            // Simple admin password for demo purposes
             if (Console.ReadLine() != "admin123")
             {
-                Console.WriteLine("Incorrect admin password.");
+                Console.WriteLine("Access denied.");
                 return;
             }
-            
-            bool manageBackups = true;
-            
-            while (manageBackups)
+
+            while (true)
             {
-                Console.WriteLine("\nBackup Management Menu:");
-                Console.WriteLine("1. Create New Backup");
-                Console.WriteLine("2. View Available Backups");
-                Console.WriteLine("3. Restore from Backup");
-                Console.WriteLine("4. Return to Main Menu");
-                Console.Write("\nEnter your choice: ");
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
+                Console.WriteLine("\n1. Create Backup\n2. View Backups\n3. Restore\n4. Back");
+                Console.Write("Choice: ");
+                switch (Console.ReadLine())
                 {
                     case "1":
                         _bank.CreateBackup();
-                        Console.WriteLine("Backup created successfully.");
+                        Console.WriteLine("Backup created.");
                         break;
                     case "2":
                         var backups = _bank.GetAvailableBackups();
-                        if (backups.Count == 0)
+                        if (!backups.Any())
                         {
-                            Console.WriteLine("No backups available.");
+                            Console.WriteLine("No backups found.");
+                            break;
                         }
-                        else
+                        Console.WriteLine("\nAvailable Backups:");
+                        for (int i = 0; i < backups.Count; i++)
                         {
-                            Console.WriteLine("\nAvailable Backups:");
-                            for (int i = 0; i < backups.Count; i++)
-                            {
-                                Console.WriteLine($"{i+1}. {backups[i]}");
-                            }
+                            Console.WriteLine($"{i+1}. {backups[i]}");
                         }
                         break;
                     case "3":
                         var restoreBackups = _bank.GetAvailableBackups();
-                        if (restoreBackups.Count == 0)
+                        if (!restoreBackups.Any())
                         {
-                            Console.WriteLine("No backups available for restore.");
+                            Console.WriteLine("No backups available.");
+                            break;
                         }
-                        else
+                        Console.Write("Enter backup number: ");
+                        if (int.TryParse(Console.ReadLine(), out int idx) && idx > 0 && idx <= restoreBackups.Count)
                         {
-                            Console.WriteLine("\nSelect Backup to Restore:");
-                            for (int i = 0; i < restoreBackups.Count; i++)
+                            Console.Write("Confirm restore? (y/n): ");
+                            if (Console.ReadLine()?.ToLower() == "y")
                             {
-                                Console.WriteLine($"{i+1}. {restoreBackups[i]}");
-                            }
-                            Console.Write("Enter number or 0 to cancel: ");
-                            
-                            if (int.TryParse(Console.ReadLine(), out int backupIndex) && 
-                                backupIndex > 0 && backupIndex <= restoreBackups.Count)
-                            {
-                                Console.Write("Are you sure? This will overwrite current data. (y/n): ");
-                                if (Console.ReadLine().ToLower() == "y")
+                                if (_bank.RestoreFromBackup(restoreBackups[idx-1]))
                                 {
-                                    if (_bank.RestoreFromBackup(restoreBackups[backupIndex - 1]))
-                                    {
-                                        Console.WriteLine("Backup restored successfully.");
-                                        // Reset current account since it might have changed
-                                        _currentAccount = null;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Failed to restore backup.");
-                                    }
+                                    Console.WriteLine("Restore successful.");
+                                    _currentAccount = null;
+                                    return;
                                 }
                             }
                         }
                         break;
                     case "4":
-                        manageBackups = false;
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        break;
+                        default:
+                        return;
                 }
             }
         }
@@ -314,321 +236,220 @@ namespace CSharpBankingApp
         
         static void ShowAccountMenu()
         {
-            Console.WriteLine($"\nAccount: {_currentAccount.Name} | Balance: {_currentAccount.Balance:C} | Type: {_currentAccount.Type}");
-            Console.WriteLine("\nAccount Menu:");
-            Console.WriteLine("1. View Account Details");
-            Console.WriteLine("2. Deposit");
-            Console.WriteLine("3. Withdraw");
-            Console.WriteLine("4. Transfer");
-            Console.WriteLine("5. View Transaction History");
-            Console.WriteLine("6. Change PIN");
-            Console.WriteLine("7. Change Account Type");
-            Console.WriteLine("8. Calculate Interest");
-            Console.WriteLine("9. Logout");
-            Console.Write("\nEnter your choice: ");
+            if (_currentAccount == null) return;
             
-            string choice = Console.ReadLine();
+            Console.WriteLine($"\nAccount: {_currentAccount.Name} | Balance: {_currentAccount.Balance:C}");
+            Console.WriteLine("\n1. Details\n2. Deposit\n3. Withdraw\n4. Transfer\n5. Transactions\n6. Change PIN\n7. Change Type\n8. Interest\n9. Logout");
+            Console.Write("Choice: ");
             
-            switch (choice)
+            switch (Console.ReadLine())
             {
-                case "1":
-                    DisplayAccountDetails();
-                    break;
-                case "2":
-                    MakeDeposit();
-                    break;
-                case "3":
-                    MakeWithdrawal();
-                    break;
-                case "4":
-                    MakeTransfer();
-                    break;
-                case "5":
-                    ViewTransactionHistory();
-                    break;
-                case "6":
-                    ChangePin();
-                    break;
-                case "7":
-                    ChangeAccountType();
-                    break;
-                case "8":
-                    CalculateInterest();
-                    break;
-                case "9":
-                    _currentAccount = null;
-                    Console.WriteLine("Logged out successfully.");
-                    break;
-                default:
-                    Console.WriteLine("Invalid choice. Please try again.");
-                    break;
+                case "1": DisplayAccountDetails(); break;
+                case "2": MakeDeposit(); break;
+                case "3": MakeWithdrawal(); break;
+                case "4": MakeTransfer(); break;
+                case "5": ViewTransactionHistory(); break;
+                case "6": ChangePin(); break;
+                case "7": ChangeAccountType(); break;
+                case "8": CalculateInterest(); break;
+                case "9": _currentAccount = null; break;
+                default: Console.WriteLine("Invalid choice."); break;
             }
         }
         
         static void DisplayAccountDetails()
         {
+            if (_currentAccount == null) return;
             Console.WriteLine("\n=== Account Details ===");
             Console.WriteLine(_currentAccount.GetAccountSummary());
-            
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey(true);
+            Console.ReadKey();
         }
         
         static void MakeDeposit()
         {
-            Console.WriteLine("\n=== Make Deposit ===");
+            if (_currentAccount == null) return;
             
-            Console.Write("Enter amount to deposit: ");
+            Console.Write("\nAmount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
-                Console.WriteLine("Invalid amount format.");
+                Console.WriteLine("Invalid amount.");
                 return;
             }
             
-            Console.Write("Enter PIN to confirm: ");
-            string pin = Console.ReadLine();
+            Console.Write("PIN: ");
+            string? pin = Console.ReadLine();
             
-            if (_bank.Deposit(_currentAccount.Id, amount, pin))
+            if (_bank.Deposit(_currentAccount.Id, amount, pin ?? ""))
             {
-                Console.WriteLine($"Successfully deposited {amount:C}");
-                Console.WriteLine($"New balance: {_currentAccount.Balance:C}");
+                Console.WriteLine($"Deposited {amount:C}. New balance: {_currentAccount.Balance:C}");
             }
             else
             {
-                Console.WriteLine("Deposit failed. Please check your PIN and try again.");
+                Console.WriteLine("Deposit failed.");
             }
         }
         
         static void MakeWithdrawal()
         {
-            Console.WriteLine("\n=== Make Withdrawal ===");
+            if (_currentAccount == null) return;
             
-            Console.Write("Enter amount to withdraw: ");
+            Console.Write("\nAmount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
-                Console.WriteLine("Invalid amount format.");
+                Console.WriteLine("Invalid amount.");
                 return;
             }
             
-            Console.Write("Enter PIN to confirm: ");
-            string pin = Console.ReadLine();
+            Console.Write("PIN: ");
+            string? pin = Console.ReadLine();
             
-            if (_bank.Withdraw(_currentAccount.Id, amount, pin))
+            if (_bank.Withdraw(_currentAccount.Id, amount, pin ?? ""))
             {
-                Console.WriteLine($"Successfully withdrew {amount:C}");
-                Console.WriteLine($"New balance: {_currentAccount.Balance:C}");
+                Console.WriteLine($"Withdrew {amount:C}. New balance: {_currentAccount.Balance:C}");
             }
             else
             {
-                Console.WriteLine("Withdrawal failed. Please check your PIN, balance, and account limits.");
+                Console.WriteLine("Withdrawal failed.");
             }
         }
         
         static void MakeTransfer()
         {
-            Console.WriteLine("\n=== Make Transfer ===");
+            if (_currentAccount == null) return;
             
-            Console.Write("Enter recipient account name: ");
-            string recipientName = Console.ReadLine();
+            Console.Write("\nRecipient name: ");
+            string? name = Console.ReadLine();
+            var recipient = _bank.FindAccountByName(name ?? "");
             
-            var recipientAccount = _bank.FindAccountByName(recipientName);
-            
-            if (recipientAccount == null)
+            if (recipient == null)
             {
-                Console.WriteLine("Recipient account not found.");
+                Console.WriteLine("Recipient not found.");
                 return;
             }
             
-            if (recipientAccount.Id == _currentAccount.Id)
-            {
-                Console.WriteLine("Cannot transfer to the same account.");
-                return;
-            }
-            
-            Console.Write("Enter amount to transfer: ");
+            Console.Write("Amount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal amount))
             {
-                Console.WriteLine("Invalid amount format.");
+                Console.WriteLine("Invalid amount.");
                 return;
             }
             
-            Console.Write("Enter PIN to confirm: ");
-            string pin = Console.ReadLine();
+            Console.Write("PIN: ");
+            string? pin = Console.ReadLine();
             
-            if (_bank.Transfer(_currentAccount.Id, recipientAccount.Id, amount, pin))
+            if (_bank.Transfer(_currentAccount.Id, recipient.Id, amount, pin ?? ""))
             {
-                Console.WriteLine($"Successfully transferred {amount:C} to {recipientAccount.Name}");
+                Console.WriteLine($"Transferred {amount:C} to {recipient.Name}");
                 Console.WriteLine($"New balance: {_currentAccount.Balance:C}");
             }
             else
             {
-                Console.WriteLine("Transfer failed. Please check your PIN, balance, and account limits.");
+                Console.WriteLine("Transfer failed.");
             }
         }
         
         static void ViewTransactionHistory()
         {
-            Console.WriteLine("\n=== Transaction History ===");
+            if (_currentAccount == null) return;
             
-            Console.WriteLine("Filter options:");
-            Console.WriteLine("1. All transactions");
-            Console.WriteLine("2. Filter by date range");
-            Console.Write("Enter your choice: ");
-            
-            string choice = Console.ReadLine();
+            Console.WriteLine("\n1. All\n2. Filter by date");
+            Console.Write("Choice: ");
             
             List<Transaction> transactions;
-            
-            switch (choice)
+            if (Console.ReadLine() == "2")
             {
-                case "2":
-                    Console.Write("Enter start date (YYYY-MM-DD): ");
-                    if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
-                    {
-                        Console.WriteLine("Invalid date format.");
-                        return;
-                    }
-                    
-                    Console.Write("Enter end date (YYYY-MM-DD): ");
-                    if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate))
-                    {
-                        Console.WriteLine("Invalid date format.");
-                        return;
-                    }
-                    
-                    transactions = _currentAccount.GetTransactionHistory(startDate, endDate);
-                    break;
-                default:
-                    transactions = _currentAccount.GetTransactionHistory();
-                    break;
+                Console.Write("Start date (yyyy-mm-dd): ");
+                if (!DateTime.TryParse(Console.ReadLine(), out DateTime start))
+                {
+                    Console.WriteLine("Invalid date.");
+                    return;
+                }
+                
+                Console.Write("End date (yyyy-mm-dd): ");
+                if (!DateTime.TryParse(Console.ReadLine(), out DateTime end))
+                {
+                    Console.WriteLine("Invalid date.");
+                    return;
+                }
+                
+                transactions = _currentAccount.GetTransactionHistory(start, end);
+            }
+            else
+            {
+                transactions = _currentAccount.GetTransactionHistory();
             }
             
-            if (transactions.Count == 0)
+            Console.WriteLine("\nDate | Type | Amount | Description");
+            foreach (var t in transactions)
             {
-                Console.WriteLine("No transactions found for the specified criteria.");
-                return;
+                Console.WriteLine(t);
             }
-            
-            Console.WriteLine("\nTransaction History:");
-            Console.WriteLine("Date | Type | Amount | Description");
-            Console.WriteLine("-------------------------------");
-            
-            foreach (var transaction in transactions)
-            {
-                Console.WriteLine(transaction.ToString());
-            }
-            
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey(true);
+            Console.ReadKey();
         }
         
         static void ChangePin()
         {
-            Console.WriteLine("\n=== Change PIN ===");
+            if (_currentAccount == null) return;
             
-            Console.Write("Enter current PIN: ");
-            string currentPin = Console.ReadLine();
+            Console.Write("\nCurrent PIN: ");
+            string? current = Console.ReadLine();
             
-            Console.Write("Enter new 4-digit PIN: ");
-            string newPin = Console.ReadLine();
+            Console.Write("New PIN: ");
+            string? newPin = Console.ReadLine();
             
-            if (_bank.ChangePin(_currentAccount.Id, currentPin, newPin))
+            if (_bank.ChangePin(_currentAccount.Id, current ?? "", newPin ?? ""))
             {
-                Console.WriteLine("PIN changed successfully.");
+                Console.WriteLine("PIN changed.");
             }
             else
             {
-                Console.WriteLine("Failed to change PIN. Please check your current PIN and ensure new PIN is valid (4 digits).");
+                Console.WriteLine("Failed to change PIN.");
             }
         }
         
         static void ChangeAccountType()
         {
-            Console.WriteLine("\n=== Change Account Type ===");
-            Console.WriteLine("Current account type: " + _currentAccount.Type);
-            Console.WriteLine("\nAvailable account types:");
-            Console.WriteLine("1. Savings Account (2.5% interest, no overdraft)");
-            Console.WriteLine("2. Cheque Account (0.5% interest, R2000 overdraft, min balance R1000)");
-            Console.WriteLine("3. Business Account (1% interest, R5000 overdraft, min balance R5000)");
-            Console.Write("\nSelect new account type (1-3): ");
+            if (_currentAccount == null) return;
             
-            string choice = Console.ReadLine();
-            AccountType newType;
+            Console.WriteLine("\n1. Savings\n2. Cheque\n3. Business");
+            Console.Write("New type: ");
             
-            switch (choice)
+            AccountType newType = Console.ReadLine() switch
             {
-                case "1":
-                    newType = AccountType.Savings;
-                    break;
-                case "2":
-                    newType = AccountType.Cheque;
-                    break;
-                case "3":
-                    newType = AccountType.Business;
-                    break;
-                default:
-                    Console.WriteLine("Invalid choice.");
-                    return;
-            }
+                "2" => AccountType.Cheque,
+                "3" => AccountType.Business,
+                _ => AccountType.Savings
+            };
             
-            if (newType == _currentAccount.Type)
+            Console.Write("PIN: ");
+            string? pin = Console.ReadLine();
+            
+            if (_bank.ConvertAccountType(_currentAccount.Id, newType, pin ?? ""))
             {
-                Console.WriteLine("This is already your current account type.");
-                return;
-            }
-            
-            Console.WriteLine("\nAccount conversion requirements:");
-            switch (newType)
-            {
-                case AccountType.Savings:
-                    Console.WriteLine("- No minimum balance required for conversion");
-                    break;
-                case AccountType.Cheque:
-                    Console.WriteLine("- Minimum balance of R5000 required for conversion");
-                    break;
-                case AccountType.Business:
-                    Console.WriteLine("- Minimum balance of R10000 required for conversion");
-                    break;
-            }
-            
-            Console.Write("\nEnter PIN to confirm conversion: ");
-            string pin = Console.ReadLine();
-            
-            if (_bank.ConvertAccountType(_currentAccount.Id, newType, pin))
-            {
-                Console.WriteLine($"Account successfully converted to {newType} account.");
-                Console.WriteLine(_currentAccount.GetAccountSummary());
+                Console.WriteLine($"Account converted to {newType}.");
             }
             else
             {
-                Console.WriteLine("Conversion failed. Please check your PIN and ensure you meet the minimum requirements.");
+                Console.WriteLine("Conversion failed.");
             }
         }
         
         static void CalculateInterest()
         {
-            Console.WriteLine("\n=== Interest Calculation ===");
+            if (_currentAccount == null) return;
             
-            decimal interestAmount = _currentAccount.CalculateInterest();
+            decimal interest = _currentAccount.CalculateInterest();
+            Console.WriteLine($"\nMonthly interest: {interest:C}");
             
-            Console.WriteLine($"Current balance: {_currentAccount.Balance:C}");
-            Console.WriteLine($"Interest rate: {_currentAccount.InterestRate:P}");
-            Console.WriteLine($"Monthly interest amount: {interestAmount:C}");
-            
-            Console.Write("\nWould you like to apply this interest now? (y/n): ");
-            if (Console.ReadLine().ToLower() == "y")
+            Console.Write("Apply interest? (y/n): ");
+            if (Console.ReadLine()?.ToLower() == "y")
             {
-                Console.Write("Enter PIN to confirm: ");
-                string pin = Console.ReadLine();
+                Console.Write("PIN: ");
+                string? pin = Console.ReadLine();
                 
-                if (_currentAccount.ApplyMonthlyInterest(pin))
+                if (_currentAccount.ApplyMonthlyInterest(pin ?? ""))
                 {
-                    Console.WriteLine($"Interest of {interestAmount:C} applied successfully.");
-                    Console.WriteLine($"New balance: {_currentAccount.Balance:C}");
-                }
-                else
-                {
-                    Console.WriteLine("Failed to apply interest. Please check your PIN.");
+                    Console.WriteLine($"Interest applied. New balance: {_currentAccount.Balance:C}");
                 }
             }
         }
