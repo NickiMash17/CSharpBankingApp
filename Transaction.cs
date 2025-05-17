@@ -1,18 +1,64 @@
+using System;
+using System.Text.Json.Serialization;
+
 namespace CSharpBankingApp
 {
+    public enum TransactionType
+    {
+        Deposit,
+        Withdrawal,
+        Transfer,
+        Interest,
+        Fee,
+        AccountTypeChange
+    }
+
     public class Transaction
     {
-        public decimal Amount { get; }
-        public DateTime Date { get; }
-        public string Type { get; } // "Deposit" or "Withdrawal"
-        public string Notes { get; }
+        public Guid Id { get; private set; }
+        public TransactionType Type { get; private set; }
+        public decimal Amount { get; private set; }
+        public DateTime Timestamp { get; private set; }
+        public string Description { get; private set; }
 
-        public Transaction(decimal amount, DateTime date, string type, string notes)
+        // For JSON serialization
+        [JsonConstructor]
+        public Transaction(Guid id, TransactionType type, decimal amount, DateTime timestamp, string description)
         {
-            Amount = amount;
-            Date = date;
+            Id = id;
             Type = type;
-            Notes = notes;
+            Amount = amount;
+            Timestamp = timestamp;
+            Description = description;
+        }
+
+        // Constructor for new transactions
+        public Transaction(TransactionType type, decimal amount, DateTime timestamp, string description = null)
+        {
+            Id = Guid.NewGuid();
+            Type = type;
+            Amount = amount;
+            Timestamp = timestamp;
+            Description = description ?? GetDefaultDescription(type);
+        }
+
+        private string GetDefaultDescription(TransactionType type)
+        {
+            return type switch
+            {
+                TransactionType.Deposit => "Deposit",
+                TransactionType.Withdrawal => "Withdrawal",
+                TransactionType.Transfer => "Transfer",
+                TransactionType.Interest => "Interest payment",
+                TransactionType.Fee => "Service fee",
+                TransactionType.AccountTypeChange => "Account type conversion",
+                _ => "Transaction"
+            };
+        }
+
+        public override string ToString()
+        {
+            return $"{Timestamp:yyyy-MM-dd HH:mm:ss} | {Type} | {Amount:C} | {Description}";
         }
     }
 }
