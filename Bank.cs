@@ -11,12 +11,12 @@ namespace CSharpBankingApp
     public class Bank : IDisposable
     {
         private List<Account> _accounts;
-        private readonly object _lockObject = new();
+        private readonly object _lockObject = new object();
         private readonly string _dataFilePath;
         private readonly string _backupDirectory;
         private Timer _autoSaveTimer;
         
-        private readonly JsonSerializerOptions _jsonOptions = new()
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -40,11 +40,13 @@ namespace CSharpBankingApp
             try
             {
                 var account = new Account(name, pin, type);
+                
                 lock (_lockObject)
                 {
                     _accounts.Add(account);
                     SaveAccounts();
                 }
+                
                 return account;
             }
             catch (ArgumentException ex)
@@ -87,30 +89,39 @@ namespace CSharpBankingApp
         public bool ChangePin(string accountId, string currentPin, string newPin)
         {
             var account = GetAccount(accountId);
-            if (account == null) return false;
+            if (account == null)
+                return false;
             
             bool success = account.ChangePin(currentPin, newPin);
-            if (success) SaveAccounts();
+            if (success)
+                SaveAccounts();
+            
             return success;
         }
-
+        
         public bool Deposit(string accountId, decimal amount, string pin)
         {
             var account = GetAccount(accountId);
-            if (account == null) return false;
+            if (account == null)
+                return false;
             
             bool success = account.Deposit(amount, pin);
-            if (success) SaveAccounts();
+            if (success)
+                SaveAccounts();
+            
             return success;
         }
 
         public bool Withdraw(string accountId, decimal amount, string pin)
         {
             var account = GetAccount(accountId);
-            if (account == null) return false;
+            if (account == null)
+                return false;
             
             bool success = account.Withdraw(amount, pin);
-            if (success) SaveAccounts();
+            if (success)
+                SaveAccounts();
+            
             return success;
         }
 
@@ -119,9 +130,11 @@ namespace CSharpBankingApp
             var fromAccount = GetAccount(fromAccountId);
             var toAccount = GetAccount(toAccountId);
             
-            if (fromAccount == null || toAccount == null) return false;
+            if (fromAccount == null || toAccount == null)
+                return false;
             
-            if (!fromAccount.Withdraw(amount, pin)) return false;
+            if (!fromAccount.Withdraw(amount, pin))
+                return false;
             
             if (!toAccount.Deposit(amount, pin))
             {
@@ -136,10 +149,13 @@ namespace CSharpBankingApp
         public bool ConvertAccountType(string accountId, AccountType newType, string pin)
         {
             var account = GetAccount(accountId);
-            if (account == null) return false;
+            if (account == null)
+                return false;
             
             bool success = account.ConvertAccountType(newType, pin);
-            if (success) SaveAccounts();
+            if (success)
+                SaveAccounts();
+            
             return success;
         }
         
@@ -158,7 +174,8 @@ namespace CSharpBankingApp
                     }
                 }
                 
-                if (anyInterestApplied) SaveAccounts();
+                if (anyInterestApplied)
+                    SaveAccounts();
             }
         }
 
@@ -227,6 +244,7 @@ namespace CSharpBankingApp
                     string json = JsonSerializer.Serialize(_accounts, _jsonOptions);
                     File.WriteAllText(backupPath, json);
                 }
+                
                 CleanupOldBackups();
             }
             catch (Exception ex)
@@ -276,7 +294,8 @@ namespace CSharpBankingApp
             try
             {
                 string backupPath = Path.Combine(_backupDirectory, backupFileName);
-                if (!File.Exists(backupPath)) return false;
+                if (!File.Exists(backupPath))
+                    return false;
                 
                 string json = File.ReadAllText(backupPath);
                 var accounts = JsonSerializer.Deserialize<List<Account>>(json, _jsonOptions);
@@ -304,7 +323,7 @@ namespace CSharpBankingApp
             try
             {
                 var backups = GetAvailableBackups();
-                if (backups.Any())
+                if (backups.Count > 0)
                 {
                     return RestoreFromBackup(backups[0]);
                 }
