@@ -1,4 +1,4 @@
-# 🏦 ZABank - Premium South African Banking Application
+9# 🏦 ZABank - Premium South African Banking Application
 Your Comprehensive Digital Banking Solution
 
 ## 💼 Overview
@@ -69,7 +69,7 @@ ZABank is a robust, feature-rich banking application built with C# that simulate
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/NickiMash17/ZABank.git
+git clone https://github.com/NickiMash17/CSharpBankingApp.git
 
 # Navigate to the project directory
 cd ZABank
