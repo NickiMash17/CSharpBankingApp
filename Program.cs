@@ -32,8 +32,7 @@ var app = builder.Build();
 
 // Configure to listen on all interfaces
 app.Urls.Clear();
-app.Urls.Add("http://0.0.0.0:5000");
-app.Urls.Add("https://0.0.0.0:5001");
+app.Urls.Add($"http://0.0.0.0:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
