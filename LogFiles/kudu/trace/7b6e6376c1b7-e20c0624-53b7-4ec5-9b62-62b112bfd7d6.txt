@@ -1,1 +1,0 @@
-2025-08-24T12:42:25  Startup Request, url: /api/publish?type=zip, method: POST, type: request, pid: 823,1,15, ScmType: LocalGit
