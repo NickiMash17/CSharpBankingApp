@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CSharpBankingApp.Models
@@ -9,11 +10,35 @@ namespace CSharpBankingApp.Models
     public enum AccountType
     {
         [JsonPropertyName("Savings")]
-        Savings,
+        Savings = 0,
         [JsonPropertyName("Cheque")]
-        Cheque,
+        Cheque = 1,
         [JsonPropertyName("Business")]
-        Business
+        Business = 2
+    }
+
+    public class AccountTypeConverter : JsonConverter<AccountType>
+    {
+        public override AccountType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number)
+            {
+                int value = reader.GetInt32();
+                return (AccountType)value;
+            }
+            else if (reader.TokenType == JsonTokenType.String)
+            {
+                string value = reader.GetString();
+                if (Enum.TryParse<AccountType>(value, true, out var result))
+                    return result;
+            }
+            return AccountType.Savings; // Default fallback
+        }
+
+        public override void Write(Utf8JsonWriter writer, AccountType value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
     }
 
     public class Account
@@ -34,6 +59,7 @@ namespace CSharpBankingApp.Models
         private string Pin { get; set; }
         
         [JsonPropertyName("type")]
+        [JsonConverter(typeof(AccountTypeConverter))]
         public AccountType Type { get; private set; }
         
         [JsonPropertyName("interestRate")]
@@ -47,14 +73,14 @@ namespace CSharpBankingApp.Models
 
         [JsonConstructor]
         public Account(string id, string name, decimal balance, List<Transaction> transactions, 
-                       string pin, AccountType type, decimal interestRate, 
-                       decimal overdraftLimit, decimal minimumBalance)
+                       AccountType type, decimal interestRate, 
+                       decimal overdraftLimit, decimal minimumBalance, string pin = null)
         {
             Id = id;
             Name = name;
             Balance = balance;
             Transactions = transactions ?? new List<Transaction>();
-            Pin = pin;
+            Pin = pin ?? "0000"; // Default PIN if not provided
             Type = type;
             InterestRate = interestRate;
             OverdraftLimit = overdraftLimit;

@@ -1,10 +1,9 @@
 [
   {
     "id": "9c34da76-5473-4204-bb8a-adc8b5afa0f2",
-    "name": "Amahle Dlamini",
-    "balance": 5000.00,
+    "name": "Enhanced User",
+    "balance": 0,
     "transactions": [],
-    "pin": "1234",
     "type": 0,
     "interestRate": 0.025,
     "overdraftLimit": 0,
@@ -13,9 +12,8 @@
   {
     "id": "12172bae-a980-44c8-b06b-66a4096c65a8",
     "name": "Nicki",
-    "balance": 2500.00,
+    "balance": 0,
     "transactions": [],
-    "pin": "5678",
     "type": 0,
     "interestRate": 0.025,
     "overdraftLimit": 0,

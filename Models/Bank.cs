@@ -19,7 +19,8 @@ namespace CSharpBankingApp.Models
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new AccountTypeConverter() }
         };
 
         public Bank(string dataFilePath = "bankdata.json", string backupDirectory = "backups")
