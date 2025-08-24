@@ -2,9 +2,11 @@
 
 A modern, feature-rich banking application built with C# and ASP.NET Core, featuring a beautiful, professional web frontend with glassmorphism design and comprehensive banking operations.
 
-## 🚀 Live Demo
+## 🚀 Local Access
 
-**Your NexusBank is now live and accessible at:** `http://localhost:8080`
+**Your NexusBank is running locally and accessible at:** `http://localhost:8080`
+
+> **Note:** This URL is only accessible on your local machine. To make it accessible to others, see the [Deployment Options](#deployment-options) section below.
 
 ## ✨ Features
 
@@ -87,7 +89,7 @@ CSharpBankingApp/
 - Modern web browser
 - Code editor (VS Code, Visual Studio, etc.)
 
-### 🐳 Docker Deployment (Recommended)
+### 🐳 Docker Deployment (Local Development)
 
 1. **Clone the repository**
    ```bash
@@ -100,9 +102,45 @@ CSharpBankingApp/
    docker-compose up --build -d
    ```
 
-3. **Access your banking app**
+3. **Access your banking app locally**
    - Open your browser and go to: `http://localhost:8080`
-   - The app is now live and ready to use!
+   - The app is now running on your local machine!
+
+## 🌐 Deployment Options
+
+### **Local Network Access (Same WiFi)**
+If others are on the same network as you:
+```bash
+# Find your local IP address
+ip addr show
+
+# Others can access: http://YOUR_LOCAL_IP:8080
+# Example: http://192.168.1.100:8080
+```
+
+### **Public Cloud Deployment**
+To make your app accessible worldwide:
+
+#### **Heroku (Recommended for public access)**
+```bash
+# Install Heroku CLI
+curl https://cli-assets.heroku.com/install.sh | sh
+
+# Deploy to Heroku
+heroku create your-nexusbank-app
+git push heroku main
+
+# Your app will be at: https://your-nexusbank-app.herokuapp.com
+```
+
+#### **Railway**
+- Connect your GitHub repo to Railway
+- Automatic deployment from your repository
+- Free tier available
+
+#### **Azure App Service**
+- Use the included `azure-deploy.yml` workflow
+- Deploy directly from GitHub
 
 ### 🖥️ Local Development
 
@@ -258,4 +296,6 @@ For issues and questions:
 
 ---
 
-**🎉 Your NexusBank is now live and ready for the future of digital banking! 🏦✨** 
+**🎉 Your NexusBank is now running locally and ready for development! 🏦✨**
+
+**To share with others:** Deploy to a cloud platform using the options above. 
