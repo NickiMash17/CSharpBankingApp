@@ -8,6 +8,15 @@ A modern, feature-rich banking application built with C# and ASP.NET Core, featu
 
 > **Note:** This URL is only accessible on your local machine. To make it accessible to others, see the [Deployment Options](#deployment-options) section below.
 
+## 🌐 Azure Deployment Status
+
+**Your NexusBank is now deployed to Azure!** 🎉
+
+- **Live URL**: `https://nexusbank-app.azurewebsites.net`
+- **Status**: ✅ Successfully deployed
+- **Resource Group**: `nexusbank-rg`
+- **App Service Plan**: `nexusbank-plan`
+
 ## ✨ Features
 
 ### 🏦 Core Banking Features
