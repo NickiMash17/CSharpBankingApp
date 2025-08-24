@@ -32,7 +32,26 @@ var app = builder.Build();
 
 // Configure to listen on all interfaces
 app.Urls.Clear();
-app.Urls.Add($"http://0.0.0.0:{Environment.GetEnvironmentVariable("PORT") ?? "5000"}");
+
+// Get port from environment variable (Azure App Service provides PORT)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+
+// Add HTTP binding (always works)
+app.Urls.Add($"http://0.0.0.0:{port}");
+
+// Only add HTTPS if we're in development or have proper certificates
+if (app.Environment.IsDevelopment())
+{
+    try
+    {
+        app.Urls.Add($"https://0.0.0.0:5001");
+    }
+    catch
+    {
+        // If HTTPS fails, just continue with HTTP only
+        Console.WriteLine("HTTPS binding failed, continuing with HTTP only");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
