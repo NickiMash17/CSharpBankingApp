@@ -907,29 +907,29 @@ body {
         gap: 15px;
         align-items: flex-start;
     }
-
+    
     .account-overview {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-
+    
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .actions-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .balance-amount {
         font-size: 2.5rem;
     }
-
+    
     .modal-content {
         width: 95%;
         margin: 10% auto;
     }
-
+    
     .account-actions {
         flex-direction: column;
     }

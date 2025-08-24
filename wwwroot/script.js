@@ -13,12 +13,12 @@ const API_BASE = '/api/banking';
 function showToast(message, type = 'info', duration = 4000) {
     const toast = document.getElementById('toast');
     if (toast) {
-        toast.textContent = message;
-        toast.className = `toast ${type} show`;
-        
-        // Auto-hide with smooth animation
-        setTimeout(() => {
-            toast.classList.remove('show');
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    
+    // Auto-hide with smooth animation
+    setTimeout(() => {
+        toast.classList.remove('show');
         }, duration);
     } else {
         // Create toast if it doesn't exist
@@ -120,7 +120,7 @@ function switchTab(tabName) {
     // Show selected tab
     const targetTab = document.getElementById(tabName + 'Tab');
     if (targetTab) {
-        targetTab.classList.add('active');
+    targetTab.classList.add('active');
         console.log('Showing tab:', targetTab.id);
     } else {
         console.error('Tab not found:', tabName + 'Tab');
@@ -133,9 +133,9 @@ function switchTab(tabName) {
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'block';
+    modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-        
+    
         // Focus first input
         const firstInput = modal.querySelector('input, select');
         if (firstInput) {
@@ -162,7 +162,7 @@ function closeModal(modalId) {
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal')) {
         closeModal(e.target.id);
-    }
+        }
 });
 
 // Enhanced Authentication Functions
@@ -372,9 +372,9 @@ async function processDeposit() {
     
     if (depositData.amount <= 0) {
         showToast('Amount must be greater than zero', 'error');
-        return;
-    }
-    
+            return;
+        }
+        
     const submitBtn = form.querySelector('button[type="submit"]') || document.querySelector('#depositModal .btn-primary');
     setLoading(submitBtn, true);
     
@@ -480,7 +480,7 @@ function startSessionTimer() {
 function logout() {
     currentUser = null;
     currentAccount = null;
-    
+        
     if (sessionTimer) {
         clearInterval(sessionTimer);
         sessionTimer = null;
@@ -563,8 +563,8 @@ function updateTransactions() {
             </div>
         </div>
     `).join('');
-}
-
+    }
+    
 function updateCurrentTime() {
     const timeElement = document.getElementById('currentTime');
     if (timeElement) {
@@ -625,11 +625,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (authSection) {
         console.log('Auth section display style:', authSection.style.display);
         console.log('Auth section computed display:', window.getComputedStyle(authSection).display);
-    }
+        }
     // Form submissions
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
-    
+        
     if (loginForm) {
         loginForm.addEventListener('submit', login);
     }
@@ -662,11 +662,11 @@ document.addEventListener('DOMContentLoaded', function() {
         authSection.style.display = 'block';
         console.log('Auth section display set to block');
         console.log('Auth section computed style:', window.getComputedStyle(authSection).display);
-    } else {
+            } else {
         console.error('Auth section not found!');
-    }
-});
-
+            }
+        });
+        
 // Check authentication status on page load
 async function checkAuthStatus() {
     try {
@@ -692,7 +692,7 @@ function showAuthSection() {
     document.getElementById('authSection').style.display = 'block';
     document.getElementById('dashboard').classList.remove('active');
     document.getElementById('userInfo').style.display = 'none';
-}
+            }
 
 // Add CSS for ripple effect
 const style = document.createElement('style');
