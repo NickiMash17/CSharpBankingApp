@@ -4,12 +4,15 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace CSharpBankingApp
+namespace CSharpBankingApp.Models
 {
     public enum AccountType
     {
+        [JsonPropertyName("Savings")]
         Savings,
+        [JsonPropertyName("Cheque")]
         Cheque,
+        [JsonPropertyName("Business")]
         Business
     }
 

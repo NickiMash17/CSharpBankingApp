@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 
-namespace CSharpBankingApp
+namespace CSharpBankingApp.Models
 {
     public class Bank : IDisposable
     {

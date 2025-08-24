@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace CSharpBankingApp
+namespace CSharpBankingApp.Models
 {
     public enum TransactionType
     {

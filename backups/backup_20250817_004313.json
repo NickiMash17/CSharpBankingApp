@@ -1,0 +1,42 @@
+[
+  {
+    "id": "e4628b41-1e93-4535-a163-d44d0054b767",
+    "name": "Test User",
+    "balance": 0,
+    "transactions": [],
+    "type": 0,
+    "interestRate": 0.025,
+    "overdraftLimit": 0,
+    "minimumBalance": 0
+  },
+  {
+    "id": "937f55a0-e111-4485-be8e-d85417ea40ad",
+    "name": "John Doe",
+    "balance": 0,
+    "transactions": [],
+    "type": 1,
+    "interestRate": 0.005,
+    "overdraftLimit": 200,
+    "minimumBalance": 100
+  },
+  {
+    "id": "e7138b09-a2a3-4b9f-a306-0304a424e45f",
+    "name": "John Doe",
+    "balance": 0,
+    "transactions": [],
+    "type": 1,
+    "interestRate": 0.005,
+    "overdraftLimit": 200,
+    "minimumBalance": 100
+  },
+  {
+    "id": "55c038ac-3e0a-49c0-8a75-ec89eab90bfe",
+    "name": "Nicolette Mashaba",
+    "balance": 0,
+    "transactions": [],
+    "type": 0,
+    "interestRate": 0.025,
+    "overdraftLimit": 0,
+    "minimumBalance": 0
+  }
+]
